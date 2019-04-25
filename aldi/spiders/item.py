@@ -10,13 +10,13 @@ class ItemSpider(scrapy.Spider):
     def parse(self, response):
 
         for nav in response.css('a.m-level-sub::attr(href)'):
-            yield response.follow(nav, callback=self.parse_item)
+            yield response.follow(nav, callback=ItemSpider.parse_page)
 
-    def parse_item(self, response):
+    @staticmethod
+    def parse_page(response):
 
-        products = self.get_products(response)
-
-        top_category, sub_category = self.parse_bread_crumb(response)
+        products = ItemSpider.get_products(response)
+        top_category, sub_category = ItemSpider.parse_bread_crumb(response)
 
         for product in products:
             name, price, image_src, url = ItemSpider.extract_product_detail(product)
@@ -59,11 +59,13 @@ class ItemSpider(scrapy.Spider):
 
         return '0.' + conc.replace('c', '')
 
-    def get_products(self, response):
+    @staticmethod
+    def get_products(response):
         products = response.css('div.tx-aldi-products a.box--wrapper')
         return products
 
-    def parse_bread_crumb(self, response):
+    @staticmethod
+    def parse_bread_crumb(response):
         top_text = response.xpath('//*[@id="breadcrumb-nav"]/div/div/ul/li[2]/a/span[1]/text()').get()
         sub_text = response.xpath('//*[@id="breadcrumb-nav"]/div/div/ul/li[3]/span/text()').get()
         return top_text, sub_text
